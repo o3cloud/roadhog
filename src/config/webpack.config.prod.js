@@ -1,6 +1,6 @@
-import webpack from 'webpack';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import Visualizer from 'webpack-visualizer-plugin';
+import UglifyJSPlugin from 'uglifyjs-webpack-plugin';
 import getEntry from '../utils/getEntry';
 import getTheme from '../utils/getTheme';
 import getCSSLoaders from '../utils/getCSSLoaders';
@@ -19,8 +19,9 @@ import {
 } from './common';
 
 export default function (args, appBuild, config, paths) {
-  const { watch, debug, analyze } = args;
+  const { debug, analyze } = args;
   const NODE_ENV = debug ? 'development' : process.env.NODE_ENV;
+  console.log('env is', NODE_ENV);
 
   const {
     publicPath = '/',
@@ -47,6 +48,23 @@ export default function (args, appBuild, config, paths) {
 
   if (library) output.library = library;
 
+  // 打包转换的配置文件
+  const uglifyJsPluginConfig = {
+    cache: true,    // 开启文件缓存
+    parallel: true, // 开启异步线程cpu
+    // 原始的设置项目
+    uglifyOptions: {
+      compress: {
+        warnings: false,
+      },
+      mangle: false,
+      output: {
+        comments: false,
+        ascii_only: true,
+      },
+    },
+  };
+
   const finalWebpackConfig = {
     bail: true,
     devtool,
@@ -61,10 +79,11 @@ export default function (args, appBuild, config, paths) {
       ],
     },
     plugins: [
-      ...(watch ? [] : [
-        new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.optimize.DedupePlugin(),
-      ]),
+      // NOTE：该部分配置，在webpack2中被删掉了
+      // ...(watch ? [] : [
+      //   new webpack.optimize.OccurrenceOrderPlugin(),
+      //   new webpack.optimize.DedupePlugin(),
+      // ]),
       new ExtractTextPlugin({
         filename: `${cssFileName}.css`,
         allChunks: true,
@@ -75,25 +94,19 @@ export default function (args, appBuild, config, paths) {
         appBuild,
         NODE_ENV,
       }),
-      ...(debug ? [] : [new webpack.optimize.UglifyJsPlugin({
-        compress: {
-          screw_ie8: true, // React doesn't support IE8
-          warnings: false,
-        },
-        mangle: {
-          screw_ie8: true,
-        },
-        output: {
-          comments: false,
-          screw_ie8: true,
-          ascii_only: true,
-        },
-      })]),
+      ...(debug ? [] : [new UglifyJSPlugin(uglifyJsPluginConfig)]),
       ...(analyze ? [new Visualizer()] : []),
     ],
     externals: config.externals,
     node,
   };
+
+  // 正式打包时候的配置参数
+  if (!debug) {
+    console.log('---------------------------');
+    console.log('uglifyJsPluginConfig', uglifyJsPluginConfig);
+    console.log('---------------------------');
+  }
 
   if (config.svgSpriteLoaderDirs) {
     baseSvgLoader.exclude = config.svgSpriteLoaderDirs;

@@ -216,6 +216,15 @@ function realBuild(previousSizeMap, resolve, argv) {
     console.log('Creating an optimized production build...');
   }
 
+  console.log('realBuild params ----------');
+  console.log('previousSizeMap', previousSizeMap);
+  console.log('resolve', resolve);
+  console.log('argv', argv);
+  console.log('---------------------------');
+  console.log('webpack config');
+  console.log(config);
+  console.log('---------------------------');
+
   const compiler = webpack(config);
   const done = doneHandler.bind(null, previousSizeMap, argv, resolve);
   if (argv.watch) {
