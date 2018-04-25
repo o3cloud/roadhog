@@ -1,6 +1,5 @@
 {
   "name": "roadhog",
-  "private": true,
   "version": "1.5.0",
   "description": "Cli tool for serve and build react app, based on create-react-app, support JSON pattern config.",
   "bin": {
