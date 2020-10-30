@@ -53,6 +53,7 @@ export function getResolve(config, paths) {
         '.web.js', '.web.jsx', '.web.ts', '.web.tsx',
         '.js', '.json', '.jsx', '.ts', '.tsx',
       ],
+      symlinks: false,
     },
     resolveLoader: {
       modules: [
